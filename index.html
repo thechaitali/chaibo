@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meet CHAIBO 🤖</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js">
-    alert(window.speechSynthesis.getVoices().map(v => v.name).join('\n'));
+    setTimeout(() => {
+  alert(window.speechSynthesis.getVoices().map(v => v.name).join('\n'));
+}, 2000);
   </script>
   <style>
     body {
