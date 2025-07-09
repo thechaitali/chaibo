@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
-      background: linear-gradient(to right, #fceabb, #f8b500);
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -28,12 +28,13 @@
       margin: 10px 0;
     }
     .typing {
-      font-size: 1.1em;
+      font-size: 1.2em;
       border-right: 2px solid #333;
       white-space: nowrap;
       overflow: hidden;
       margin-bottom: 20px;
       min-height: 3em;
+      transition: opacity 1s ease;
     }
     button {
       padding: 10px 20px;
@@ -56,12 +57,12 @@
 
   <div>
     <p>Choose my voice:</p>
-    <button onclick="startGreeting('female')">Female Voice</button>
-    <button onclick="startGreeting('male')">Male Voice</button>
+    <button onclick="startChat('female')">Female Voice</button>
+    <button onclick="startChat('male')">Male Voice</button>
   </div>
 
   <script>
-    // Load Lottie Animation
+    // Robot Animation
     const animation = lottie.loadAnimation({
       container: document.getElementById('robot'),
       renderer: 'svg',
@@ -70,45 +71,68 @@
       path: 'https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json'
     });
 
-    const message = "Hello Human! I am your AI Bot, CHAIBO!! 🤖 Nice to interact with you all!! My name is CHAIBO because I was designed by Chaitali Borkar — my creator!";
     const typing = document.getElementById('typing');
+
+    // Message with proper CHAIBO pronunciation
+    const message = "Hello Human! I am your AI Bot, CHAI BO!! 🤖|Nice to interact with you all!!|My name is CHAI BO because I was designed by Chaitali Borkar — my creator!";
+    const sentences = message.split('|');
     let voices = [];
 
     // Load voices properly
     function loadVoices() {
       voices = window.speechSynthesis.getVoices();
     }
-
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    function startGreeting(voiceType) {
-      typing.textContent = '';
-      let i = 0;
+    function startChat(voiceType) {
+      let index = 0;
 
-      function typeText() {
-        if (i < message.length) {
-          typing.textContent += message.charAt(i);
-          i++;
-          setTimeout(typeText, 50);
+      function processSentence() {
+        if (index >= sentences.length) return;
+
+        const sentence = sentences[index];
+        typing.textContent = '';
+        typing.style.opacity = 1;
+
+        // Typing effect
+        let i = 0;
+        function type() {
+          if (i < sentence.length) {
+            typing.textContent += sentence.charAt(i);
+            i++;
+            setTimeout(type, 50);
+          } else {
+            // Speak after typing done
+            const utterance = new SpeechSynthesisUtterance(sentence);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            utterance.voice = voices.find(v => {
+              if (voiceType === 'female') {
+                return v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('samantha');
+              } else {
+                return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('daniel');
+              }
+            }) || voices[0];
+
+            utterance.onend = () => {
+              typing.style.opacity = 0;
+              setTimeout(() => {
+                index++;
+                processSentence();
+              }, 1000);
+            };
+
+            window.speechSynthesis.speak(utterance);
+          }
         }
+
+        type();
       }
 
-      const speech = new SpeechSynthesisUtterance(message);
-      speech.voice = voices.find(v => {
-        if (voiceType === 'female') {
-          return v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('samantha');
-        } else {
-          return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('daniel');
-        }
-      }) || voices[0];
-
-      speech.pitch = 1;
-      speech.rate = 1;
-
-      // Start Typing + Speaking
-      typeText();
-      window.speechSynthesis.speak(speech);
+      processSentence();
     }
   </script>
 </body>
