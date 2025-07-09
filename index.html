@@ -7,83 +7,110 @@
   <style>
     body {
       margin: 0;
-      background: linear-gradient(to right, #f0f8ff, #e6e6fa);
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      font-family: Arial, sans-serif;
       text-align: center;
+      padding: 20px;
     }
+
     #robot {
       width: 200px;
       height: 200px;
-      background: url('https://cdn-icons-png.flaticon.com/512/4712/4712108.png') no-repeat center/contain;
       margin-bottom: 20px;
     }
+
+    h1 {
+      font-size: 2em;
+      margin: 10px 0;
+    }
+
     .typing {
-      font-size: 1.5em;
+      font-size: 1.2em;
       border-right: 2px solid #333;
-      padding: 10px;
       white-space: nowrap;
       overflow: hidden;
+      display: inline-block;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
-  <div id="robot"></div>
+  <img id="robot" src="https://cdn-icons-png.flaticon.com/512/4712/4712103.png" alt="Robot Icon">
   <h1>Meet CHAIBO 🤖</h1>
-  <div class="typing" id="message"></div>
-  
+  <div class="typing" id="text"></div>
+
+  <button onclick="startChaibo()">Start CHAIBO</button>
+
   <script>
-    window.speechSynthesis.onvoiceschanged = () => {
+    const lines = [
+      "Hello, human! I am your AI bot, CHAIBO!",
+      "Nice to interact with you all!",
+      "My name is CHAIBO because I was designed by Chaitali Borkar."
+    ];
+
+    function startChaibo() {
       const voices = window.speechSynthesis.getVoices();
-      const voiceList = voices.map((v, i) => `${i + 1}: ${v.name}`).join('\n');
-      const choice = prompt("Select your voice (enter number):\n" + voiceList);
-      const selectedVoice = voices[parseInt(choice) - 1];
-
-      const sentences = [
-        "Hello Human! I am your AI Bot, CHAIBO!",
-        "Nice to interact with you all!",
-        "My name is CHAIBO because I am designed by Chaitali Borkar!",
-        "Are you ready to explore my project?"
-      ];
-
-      let index = 0;
-      const messageEl = document.getElementById('message');
-
-      function speakSentence() {
-        if (index < sentences.length) {
-          const sentence = sentences[index];
-          messageEl.textContent = sentence;
-          
-          const utterance = new SpeechSynthesisUtterance(sentence);
-          utterance.voice = selectedVoice;
-          utterance.rate = 0.9;  // Slow and clear
-          window.speechSynthesis.speak(utterance);
-          
-          utterance.onend = () => {
-            setTimeout(() => {
-              messageEl.textContent = ''; // Erase after speaking
-              index++;
-              speakSentence();
-            }, 800);  // Small delay between sentences
-          };
-        } else {
-          // After all lines
-          setTimeout(() => {
-            if (confirm("Do you want to see my project?")) {
-              window.location.href = "https://your-project-link.com";  // Replace with your project link
-            } else {
-              alert("Thank you! See you soon!");
-            }
-          }, 1000);
-        }
+      if (!voices.length) {
+        alert("Voices not loaded yet. Please try again or refresh.");
+        return;
       }
 
-      speakSentence();
-    };
+      let selectedVoice = voices.find(voice => voice.name.toLowerCase().includes("male")) || voices[0];
+      
+      let index = 0;
+      const textElement = document.getElementById('text');
+
+      function speakNextLine() {
+        if (index >= lines.length) {
+          setTimeout(() => {
+            const response = confirm("Do you want to explore my project?");
+            if (response) {
+              window.location.href = "https://thechaitali.github.io/chaibo/"; // Link to your project
+            } else {
+              const goodbye = new SpeechSynthesisUtterance("Thank you for visiting! See you soon!");
+              goodbye.voice = selectedVoice;
+              window.speechSynthesis.speak(goodbye);
+            }
+          }, 500);
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(lines[index]);
+        utterance.voice = selectedVoice;
+        window.speechSynthesis.speak(utterance);
+
+        textElement.textContent = lines[index];
+
+        utterance.onend = () => {
+          setTimeout(() => {
+            textElement.textContent = "";
+            index++;
+            speakNextLine();
+          }, 800);
+        };
+      }
+
+      speakNextLine();
+    }
   </script>
 </body>
 </html>
