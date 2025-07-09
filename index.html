@@ -4,140 +4,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meet CHAIBO 🤖</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js">
-    setTimeout(() => {
-  alert(window.speechSynthesis.getVoices().map(v => v.name).join('\n'));
-}, 2000);
-  </script>
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      background: linear-gradient(to right, #f0f8ff, #e6e6fa);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      font-family: Arial, sans-serif;
       text-align: center;
-      padding: 20px;
     }
     #robot {
       width: 200px;
       height: 200px;
+      background: url('https://cdn-icons-png.flaticon.com/512/4712/4712108.png') no-repeat center/contain;
       margin-bottom: 20px;
-    }
-    h1 {
-      font-size: 2em;
-      margin: 10px 0;
     }
     .typing {
-      font-size: 1.2em;
+      font-size: 1.5em;
       border-right: 2px solid #333;
+      padding: 10px;
       white-space: nowrap;
       overflow: hidden;
-      margin-bottom: 20px;
-      min-height: 3em;
-      transition: opacity 1s ease;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 8px;
-      background: #ffecd2;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background: #f8c58c;
     }
   </style>
 </head>
 <body>
   <div id="robot"></div>
-  <h1>👋 Meet CHAIBO!</h1>
-  <div class="typing" id="typing">Choose my voice to start!</div>
-
-  <div>
-    <p>Choose my voice:</p>
-    <button onclick="startChat('female')">Female Voice</button>
-    <button onclick="startChat('male')">Male Voice</button>
-  </div>
-
+  <h1>Meet CHAIBO 🤖</h1>
+  <div class="typing" id="message"></div>
+  
   <script>
-    // Robot Animation
-    const animation = lottie.loadAnimation({
-      container: document.getElementById('robot'),
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      path: 'https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json'
-    });
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const voiceList = voices.map((v, i) => `${i + 1}: ${v.name}`).join('\n');
+      const choice = prompt("Select your voice (enter number):\n" + voiceList);
+      const selectedVoice = voices[parseInt(choice) - 1];
 
-    const typing = document.getElementById('typing');
+      const sentences = [
+        "Hello Human! I am your AI Bot, CHAIBO!",
+        "Nice to interact with you all!",
+        "My name is CHAIBO because I am designed by Chaitali Borkar!",
+        "Are you ready to explore my project?"
+      ];
 
-    // Message with proper CHAIBO pronunciation
-    const message = "Hello Human! I am your AI Bot, CHAI BO!! 🤖|Nice to interact with you all!!|My name is CHAI BO because I was designed by Chaitali Borkar — my creator!";
-    const sentences = message.split('|');
-    let voices = [];
-
-    // Load voices properly
-    function loadVoices() {
-      voices = window.speechSynthesis.getVoices();
-    }
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
-    function startChat(voiceType) {
       let index = 0;
+      const messageEl = document.getElementById('message');
 
-      function processSentence() {
-        if (index >= sentences.length) return;
-
-        const sentence = sentences[index];
-        typing.textContent = '';
-        typing.style.opacity = 1;
-
-        // Typing effect
-        let i = 0;
-        function type() {
-          if (i < sentence.length) {
-            typing.textContent += sentence.charAt(i);
-            i++;
-            setTimeout(type, 50);
-          } else {
-            // Speak after typing done
-            const utterance = new SpeechSynthesisUtterance(sentence);
-            utterance.rate = 0.9;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-
-            utterance.voice = voices.find(v => {
-              if (voiceType === 'female') {
-                return v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('samantha');
-              } else {
-                return v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('daniel');
-              }
-            }) || voices[0];
-
-            utterance.onend = () => {
-              typing.style.opacity = 0;
-              setTimeout(() => {
-                index++;
-                processSentence();
-              }, 1000);
-            };
-
-            window.speechSynthesis.speak(utterance);
-          }
+      function speakSentence() {
+        if (index < sentences.length) {
+          const sentence = sentences[index];
+          messageEl.textContent = sentence;
+          
+          const utterance = new SpeechSynthesisUtterance(sentence);
+          utterance.voice = selectedVoice;
+          utterance.rate = 0.9;  // Slow and clear
+          window.speechSynthesis.speak(utterance);
+          
+          utterance.onend = () => {
+            setTimeout(() => {
+              messageEl.textContent = ''; // Erase after speaking
+              index++;
+              speakSentence();
+            }, 800);  // Small delay between sentences
+          };
+        } else {
+          // After all lines
+          setTimeout(() => {
+            if (confirm("Do you want to see my project?")) {
+              window.location.href = "https://your-project-link.com";  // Replace with your project link
+            } else {
+              alert("Thank you! See you soon!");
+            }
+          }, 1000);
         }
-
-        type();
       }
 
-      processSentence();
-    }
+      speakSentence();
+    };
   </script>
 </body>
 </html>
